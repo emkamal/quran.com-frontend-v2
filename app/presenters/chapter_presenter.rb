@@ -33,7 +33,6 @@ class ChapterPresenter < HomePresenter
   def font
     strong_memoize :font do
       _font = params[:font].presence || session[:font] || 'v1'
-
       _font = FONT_METHODS.key?(_font) ? _font : 'v1'
       session[:font] = _font
     end
@@ -158,14 +157,6 @@ class ChapterPresenter < HomePresenter
     true
   end
 
-  def recitation_selected?(id)
-    id == (session[:recitation] || DEFAULT_RECITATION)
-  end
-
-  def translation_selected?(id)
-    valid_translations.include?(id)
-  end
-
   def load_translations(verse, default_translation = nil)
     translations_to_load = valid_translations
 
@@ -245,7 +236,7 @@ class ChapterPresenter < HomePresenter
   def range_end
     if @range_start && @range_end.nil?
       # For single ayah(e.g 2/1) range start and end should be same. One ayah
-      #
+
       range_start
     else
       min((@range_end || chapter.verses_count).to_i, chapter.verses_count)
@@ -255,11 +246,6 @@ class ChapterPresenter < HomePresenter
   def range_start
     start = (@range_start || 1).to_i
 
-    # Range start and end is inclusive while quering the data.
-    # We don't want to repeat last ayah after first page
-    # So start + 1
-    start = current_page > 1 ? start + 1 : start
-
     min(start, chapter.verses_count)
   end
 
@@ -268,7 +254,7 @@ class ChapterPresenter < HomePresenter
   end
 
   def verse_pagination_end(start, per)
-    min(start + per, range_end)
+    min((start + per) - 1, range_end)
   end
 
   def min(a, b)
